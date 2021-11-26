@@ -1,0 +1,7 @@
+{
+	"common_dir" : "C:/FPGA_FAST/SRAM_8BIT_NoAddressLines/",
+	"acds_version" : "Version 20.1.0",
+	"platform" : "windows",
+	"os" : "Windows 7",
+	"qpf" : "SRAM_8BIT_ZEROADDR.qpf"
+}
