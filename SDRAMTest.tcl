@@ -325,7 +325,7 @@ proc reset {} {
 
 	device_virtual_ir_shift -instance_index 0 -ir_value $RESET_LO_CMD
 	setJTAGBypass        
-	after 2000
+	after 3000
 	device_virtual_ir_shift -instance_index 0 -ir_value $RESET_HI_CMD
 	setJTAGBypass        
 }

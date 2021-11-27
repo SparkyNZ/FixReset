@@ -48,8 +48,8 @@ assign tckDup = tck;
  
 logic notReset;
 
-assign oLED8 = notReset;
-assign oLED7 = 1;
+//assign oLED8 = 1;
+//assign oLED7 = 1;
 assign oLED6 = 1;
 assign oLED5 = 1;
 
@@ -199,11 +199,11 @@ always_ff @ (posedge tck) begin
       begin
         if (opco != ir_in_copy) begin
           
-          if( ( ir_in_copy[3:0] == RESETLO ) || ( ir_in_copy[3:0] == RESETHI ) )
+          if( ( opco[3:0] == RESETLO ) || ( opco[3:0] == RESETHI ) )
           begin   // notReset
             jTagCommandRequested <= 0;
           end
-          else if( ir_in_copy[3:0] != 0 )
+          else if( opco[3:0] != 0 )
           begin
             // Increment for any opcode but ignore the JTAGBypass opcode (zero) which is sent after every instruction
             jTagCommandRequested <= jTagCommandRequested + 1;
@@ -220,16 +220,18 @@ always_ff @ (posedge tck) begin
         // ternary operator below, it's always held high unless that one condition occurs. Check RTL Viewer
         // if in doubt. The previous behaviour resulted in oscillation - LED2 flickering - stuff going
         // wrong and possibly because different clock boundaries between uir and clk in the main state machine
-        if( ir_in_copy[3:0] == RESETLO)
+        if( opco[3:0] == RESETLO)
         begin
           notReset <= 0;
           oLED1 <= 0;
+          oLED8 <= ~ oLED8;
         end
         else 
-        if( ir_in_copy[3:0] == RESETHI)
+        if( opco[3:0] == RESETHI)
         begin
           notReset <= 1;
           oLED1 <= 1;
+          oLED7 <= ~ oLED7;
         end
         else
         begin
