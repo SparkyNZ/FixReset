@@ -72,6 +72,7 @@ logic [4:0] ir_in_copy;
 logic ir_out;
 
 logic [3:0] registeraddress;
+logic [4:0] last_opco;
 logic [4:0] opco;
 logic [31:0] shift_buffer = 32'h0;
 logic [31:0] active_register = 0;
@@ -92,8 +93,10 @@ localparam WRITEREG   = 4'b0111;
 localparam READTXT    = 4'b1000;
 localparam SETTXTIDX  = 4'b1001;
 localparam WRITETXT   = 4'b1010;
+
 localparam RESETHI    = 4'b1011;
 localparam RESETLO    = 4'b1100;
+
 localparam READREG2   = 4'b1101;
 localparam SELTEST    = 4'b1110;
 
@@ -197,13 +200,13 @@ always_ff @ (posedge tck) begin
     
     tckNewInstruction : 
       begin
-        if (opco != ir_in_copy) begin
+        if (ir_in_copy != last_opco) begin
           
-          if( ( opco[3:0] == RESETLO ) || ( opco[3:0] == RESETHI ) )
+          if( ( ir_in_copy[3:0] == RESETLO ) || ( ir_in_copy[3:0] == RESETHI ) )
           begin   // notReset
             jTagCommandRequested <= 0;
           end
-          else if( opco[3:0] != 0 )
+          else if( ir_in_copy[3:0] != 0 )
           begin
             // Increment for any opcode but ignore the JTAGBypass opcode (zero) which is sent after every instruction
             jTagCommandRequested <= jTagCommandRequested + 1;
@@ -220,14 +223,14 @@ always_ff @ (posedge tck) begin
         // ternary operator below, it's always held high unless that one condition occurs. Check RTL Viewer
         // if in doubt. The previous behaviour resulted in oscillation - LED2 flickering - stuff going
         // wrong and possibly because different clock boundaries between uir and clk in the main state machine
-        if( opco[3:0] == RESETLO)
+        if( ir_in_copy[3:0] == RESETLO)
         begin
           notReset <= 0;
           oLED1 <= 0;
           oLED8 <= ~ oLED8;
         end
         else 
-        if( opco[3:0] == RESETHI)
+        if( ir_in_copy[3:0] == RESETHI)
         begin
           notReset <= 1;
           oLED1 <= 1;
@@ -239,7 +242,8 @@ always_ff @ (posedge tck) begin
         end
 
       
-        // PDS> THIS IS IT! The assignment is happening in parallel with the test
+        last_opco <= ir_in_copy;
+        
         opco <= ir_in_copy;
         
         tckState <= tckIdle;  
