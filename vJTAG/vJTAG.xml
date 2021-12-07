@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <deploy
- date="2021.07.15.18:57:09"
- outputDirectory="E:/FPGA Cylone Projects/SRAM_512K_DUAL_VGA_5/vJTAG/">
+ date="2021.12.07.15:26:41"
+ outputDirectory="C:/FPGA_FAST/FixReset/vJTAG/">
  <perimeter>
   <parameter
      name="AUTO_GENERATION_ID"
@@ -38,8 +38,8 @@
    <property name="associatedReset" value="" />
    <port name="tdi" direction="output" role="tdi" width="1" />
    <port name="tdo" direction="input" role="tdo" width="1" />
-   <port name="ir_in" direction="output" role="ir_in" width="4" />
-   <port name="ir_out" direction="input" role="ir_out" width="4" />
+   <port name="ir_in" direction="output" role="ir_in" width="5" />
+   <port name="ir_out" direction="input" role="ir_out" width="5" />
    <port
        name="virtual_state_cdr"
        direction="output"
@@ -92,24 +92,22 @@
  </perimeter>
  <entity
    path=""
-   parameterizationKey="vJTAG:1.0:AUTO_DEVICE=EP4CE6E22C8,AUTO_DEVICE_FAMILY=Cyclone IV E,AUTO_DEVICE_SPEEDGRADE=8,AUTO_GENERATION_ID=1626332228,AUTO_UNIQUE_ID=(altera_virtual_jtag:20.1:CREATE_PRIMITIVE_JTAG_STATE_SIGNAL_PORTS=false,device_family=Cyclone IV E,gui_use_auto_index=true,sld_auto_instance_index=YES,sld_instance_index=0,sld_ir_width=4)"
+   parameterizationKey="vJTAG:1.0:AUTO_DEVICE=EP4CE6E22C8,AUTO_DEVICE_FAMILY=Cyclone IV E,AUTO_DEVICE_SPEEDGRADE=8,AUTO_GENERATION_ID=1638844000,AUTO_UNIQUE_ID=(altera_virtual_jtag:20.1:CREATE_PRIMITIVE_JTAG_STATE_SIGNAL_PORTS=false,device_family=Cyclone IV E,gui_use_auto_index=true,sld_auto_instance_index=YES,sld_instance_index=0,sld_ir_width=5)"
    instancePathKey="vJTAG"
    kind="vJTAG"
    version="1.0"
    name="vJTAG">
-  <parameter name="AUTO_GENERATION_ID" value="1626332228" />
+  <parameter name="AUTO_GENERATION_ID" value="1638844000" />
   <parameter name="AUTO_DEVICE" value="EP4CE6E22C8" />
   <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone IV E" />
   <parameter name="AUTO_UNIQUE_ID" value="" />
   <parameter name="AUTO_DEVICE_SPEEDGRADE" value="8" />
   <generatedFiles>
-   <file
-       path="E:/FPGA Cylone Projects/SRAM_512K_DUAL_VGA_5/vJTAG/synthesis/vJTAG.v"
-       type="VERILOG" />
+   <file path="C:/FPGA_FAST/FixReset/vJTAG/synthesis/vJTAG.v" type="VERILOG" />
   </generatedFiles>
   <childGeneratedFiles/>
   <sourceFiles>
-   <file path="E:/FPGA Cylone Projects/SRAM_512K_DUAL_VGA_5/vJTAG.qsys" />
+   <file path="C:/FPGA_FAST/FixReset/vJTAG.qsys" />
   </sourceFiles>
   <childSourceFiles>
    <file
@@ -136,7 +134,7 @@
  </entity>
  <entity
    path="submodules/"
-   parameterizationKey="altera_virtual_jtag:20.1:CREATE_PRIMITIVE_JTAG_STATE_SIGNAL_PORTS=false,device_family=Cyclone IV E,gui_use_auto_index=true,sld_auto_instance_index=YES,sld_instance_index=0,sld_ir_width=4"
+   parameterizationKey="altera_virtual_jtag:20.1:CREATE_PRIMITIVE_JTAG_STATE_SIGNAL_PORTS=false,device_family=Cyclone IV E,gui_use_auto_index=true,sld_auto_instance_index=YES,sld_instance_index=0,sld_ir_width=5"
    instancePathKey="vJTAG:.:virtual_jtag_0"
    kind="altera_virtual_jtag"
    version="20.1"
@@ -146,7 +144,7 @@
   <parameter name="CREATE_PRIMITIVE_JTAG_STATE_SIGNAL_PORTS" value="false" />
   <parameter name="device_family" value="Cyclone IV E" />
   <parameter name="gui_use_auto_index" value="true" />
-  <parameter name="sld_ir_width" value="4" />
+  <parameter name="sld_ir_width" value="5" />
   <generatedFiles/>
   <childGeneratedFiles/>
   <sourceFiles>

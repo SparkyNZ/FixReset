@@ -16,8 +16,8 @@ module vJTAG (
 
 	output		tdi;
 	input		tdo;
-	output	[3:0]	ir_in;
-	input	[3:0]	ir_out;
+	output	[4:0]	ir_in;
+	input	[4:0]	ir_out;
 	output		virtual_state_cdr;
 	output		virtual_state_sdr;
 	output		virtual_state_e1dr;
