@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <EnsembleReport name="vJTAG" kind="vJTAG" version="1.0" fabric="QSYS">
  <!-- Format version 20.1 711 (Future versions may contain additional information.) -->
- <!-- 2021.12.07.15:27:29 -->
+ <!-- 2021.12.12.11:43:14 -->
  <!-- A collection of modules and connections -->
  <parameter name="AUTO_GENERATION_ID">
   <type>java.lang.Integer</type>
-  <value>1638844049</value>
+  <value>1639262594</value>
   <derived>false</derived>
   <enabled>true</enabled>
   <visible>false</visible>
@@ -107,7 +107,7 @@ the requested settings for a module instance. -->
   </parameter>
   <parameter name="sld_ir_width">
    <type>int</type>
-   <value>5</value>
+   <value>4</value>
    <derived>false</derived>
    <enabled>true</enabled>
    <visible>true</visible>
@@ -190,13 +190,13 @@ parameters are a RESULT of the module parameters. -->
    <port>
     <name>ir_in</name>
     <direction>Output</direction>
-    <width>5</width>
+    <width>4</width>
     <role>ir_in</role>
    </port>
    <port>
     <name>ir_out</name>
     <direction>Input</direction>
-    <width>5</width>
+    <width>4</width>
     <role>ir_out</role>
    </port>
    <port>

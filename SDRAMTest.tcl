@@ -302,6 +302,10 @@ proc userinput {} {
 		reset
       }
       
+      TCL_TEST {
+        tcl_test
+      }
+      
 			HELP {
 				help
 			}
@@ -323,11 +327,30 @@ proc reset {} {
 	global RESET_LO_CMD
 	global RESET_HI_CMD
 
-	device_virtual_ir_shift -instance_index 0 -ir_value $RESET_LO_CMD
+  # Added -show_equivalent_device_ir_dr_shift as per Intel recommendation 
+  # 12
+	device_virtual_ir_shift -instance_index 0 -show_equivalent_device_ir_dr_shift -ir_value $RESET_LO_CMD
 	setJTAGBypass        
 	after 3000
-	device_virtual_ir_shift -instance_index 0 -ir_value $RESET_HI_CMD
+  # 11
+	device_virtual_ir_shift -instance_index 0 -show_equivalent_device_ir_dr_shift -ir_value $RESET_HI_CMD
 	setJTAGBypass        
+}
+
+proc tcl_test {} {
+  device_virtual_ir_shift -instance_index 0 -show_equivalent_device_ir_dr_shift -ir_value 1
+  after 500
+  device_virtual_ir_shift -instance_index 0 -show_equivalent_device_ir_dr_shift -ir_value 2
+  after 500
+  device_virtual_ir_shift -instance_index 0 -show_equivalent_device_ir_dr_shift -ir_value 3
+  after 500
+  device_virtual_ir_shift -instance_index 0 -show_equivalent_device_ir_dr_shift -ir_value 4
+  after 500
+  device_virtual_ir_shift -instance_index 0 -show_equivalent_device_ir_dr_shift -ir_value 5
+  after 500
+  device_virtual_ir_shift -instance_index 0 -show_equivalent_device_ir_dr_shift -ir_value 6
+  after 500
+  setJTAGBypass        
 }
 
 #--------------------- TEXT ---------------------

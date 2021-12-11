@@ -22,11 +22,38 @@ module SystemVerilogTest1( input  logic sw1,
                            output logic[0:6] oDig,  // 7-segments
                            
                            output logic clkDup,
-                           output logic tckDup
                            
-                           
- );
+             
+//
+output logic tdi_dup, 
+output logic tdo_dup, 
+output logic cdr_dup, 
+//output logic eldr_dup, 
+//output logic e2dr_dup, 
+//output logic pdr_dup, 
+output logic sdr_dup, 
+output logic udr_dup, 
+output logic uir_dup, 
+//output logic cir_dup, 
+//output logic e1dr_dup, 
+//output logic bypass_reg_dup,
+output logic [3:0] ir_in_dup,
+//output logic ir_out_dup,
 
+//             
+output logic tckDup
+                           
+                           
+);
+
+ 
+// These signals are required for the vJTAG module
+logic tck, tdi, tdo, cdr, eldr, e2dr, pdr; 
+logic sdr, udr, uir, cir, e1dr, bypass_reg;
+logic [3:0] ir_in;
+logic [3:0] ir_in_copy;
+logic ir_out;
+ 
 
 logic clk2; 
  
@@ -38,7 +65,17 @@ Clock2 clock2(
  
 //assign clkDup = clk;
 assign clkDup = clk2;
+
+// Debug outputs for logic analyser
 assign tckDup = tck;
+assign tdi_dup = tdi;
+assign tdo_dup = tdo;
+assign cdr_dup = cdr;
+assign sdr_dup = sdr;
+assign udr_dup = udr;
+assign uir_dup = uir;
+assign ir_in_dup = ir_in;
+
  
  
 logic notReset;
@@ -49,16 +86,9 @@ assign oLED6 = 1;
 assign oLED5 = 1;
 
 
-// These signals are required for the vJTAG module
-logic tck, tdi, tdo, cdr, eldr, e2dr, pdr; 
-logic sdr, udr, uir, cir, e1dr, bypass_reg;
-logic [4:0] ir_in;
-logic [4:0] ir_in_copy;
-logic ir_out;
-
 logic [3:0]  registeraddress;
-logic [4:0]  last_opco;
-logic [4:0]  opco;
+logic [3:0]  last_opco;
+logic [3:0]  opco;
 logic [31:0] shift_buffer = 32'h0;
 logic [31:0] active_register = 0;
 logic [31:0] test_buffer = 0;
@@ -147,11 +177,7 @@ typedef enum
   
 TCKSTATE tckState = tckIdle;  
 
-
-
-//--------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------
-always_ff @ (posedge tck) begin	
+task DoCheckToTransmit;
 	if (sdr) begin				
 		shift_buffer <= {tdi, shift_buffer[31:1]}; //VJ State is Shift DR, so we shift using tdi and the existing bits.		
 	end	
@@ -170,32 +196,44 @@ always_ff @ (posedge tck) begin
 			SETTXTIDX: text_offset <= shift_buffer;
 		endcase		
 	end
+endtask
 
+//--------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+//always_ff @ (posedge tck) begin
+task DoCheckVJTAGIncoming;
+
+  DoCheckToTransmit();
+
+  // PDS> tck clock is not regular! cannot depend upon it
+  // PDS> Logic analyzer also shows that TCK is HI most of the time and only bounces low when data comes in
   
   case (tckState)
     tckIdle :
       begin
-        // PDS> BEGIN NEW BLOCK
         if( uir ) begin
-          ir_in_copy <= ir_in;
-          tckState <= tckNewInstruction;
+          // PDS: uir drops LO when serial bits are being read. It goes back to HI when instruction is present
+          if (ir_in != last_opco) begin
+            ir_in_copy <= ir_in;
+            tckState <= tckNewInstruction;
+          end
         end
       end
     
     tckNewInstruction : 
       begin
-        if (ir_in_copy != last_opco) begin
+        last_opco <= ir_in_copy;
           
-          if( ( ir_in_copy[3:0] == RESETLO ) || ( ir_in_copy[3:0] == RESETHI ) )
-          begin   // notReset
-            jTagCommandRequested <= 0;
-          end
-          else if( ir_in_copy[3:0] != 0 )
-          begin
-            // Increment for any opcode but ignore the JTAGBypass opcode (zero) which is sent after every instruction
-            jTagCommandRequested <= jTagCommandRequested + 1;
-          end
+        if( ( ir_in_copy[3:0] == RESETLO ) || ( ir_in_copy[3:0] == RESETHI ) )
+        begin   // notReset
+          jTagCommandRequested <= 0;
         end
+        else if( ir_in_copy[3:0] != 0 )
+        begin
+          // Increment for any opcode but ignore the JTAGBypass opcode (zero) which is sent after every instruction
+          jTagCommandRequested <= jTagCommandRequested + 1;
+        end
+
         tckState <= tckReturnToIdle;  
       end
       
@@ -226,17 +264,14 @@ always_ff @ (posedge tck) begin
         end
 
       
-        last_opco <= ir_in_copy;
-        
         opco <= ir_in_copy;
         
         tckState <= tckIdle;  
       end
       
   endcase
-  // PDS> END   NEW BLOCK
   
-end
+endtask
 
 
 //--------------------------------------------------------------------------------
@@ -436,12 +471,23 @@ logic [56:0] toggle = 0;
 
 logic [3:0] numLedValue;
 NumericLED numericLed( numLedValue, clkDup, oDig );  
+
+//--------------------------------------------------------------------------------
+// 50Mhz clock
+always_ff @( posedge clk )
+//--------------------------------------------------------------------------------
+begin
+  DoCheckVJTAGIncoming();
+end
   
 //--------------------------------------------------------------------------------
 // MAIN
 //--------------------------------------------------------------------------------
 always_ff @( posedge clkDup )
 begin
+
+  // This will NOT work at 2MHz!
+  //DoCheckVJTAGIncoming();
 
   oLED4 <= ! run;
   oLED3 <= ! debounceCounterActive;
@@ -459,9 +505,7 @@ begin
     oD4 <= 0;
     
     // LED DIGIT #1 - Closest to DIGIT pair divider, closest to D connectors
-    //numLedValue <= LastSelectedTest[3:0];
-    
-    numLedValue <= 1;
+    numLedValue <= LastSelectedTest[3:0];
   end
   else if( toggle < 32768 ) 
   begin
@@ -473,8 +517,7 @@ begin
     // LED DIGIT #2 - right of #1
     
     //jTagCommandDone jTagCommandRequested
-    //numLedValue <= jTagCommandDone[3:0];
-    numLedValue <= 2;
+    numLedValue <= jTagCommandDone[3:0];
   end
   else if( toggle < 49152 )
   begin
@@ -483,8 +526,7 @@ begin
     oD4 <= 1;
   
     // LED DIGIT #3 - right of #2
-    //numLedValue <= jTagCommandRequested[3:0];
-    numLedValue <= 3;
+    numLedValue <= jTagCommandRequested[3:0];
     //case( jTagCommandDone[3:0])
   end
   else
