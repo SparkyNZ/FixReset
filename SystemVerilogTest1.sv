@@ -83,7 +83,7 @@ logic notReset;
 //assign oLED8 = 1;
 //assign oLED7 = 1;
 assign oLED6 = 1;
-assign oLED5 = 1;
+assign oLED5 = notReset;
 
 
 logic [3:0]  registeraddress;
@@ -544,7 +544,7 @@ begin
     
     LastSelectedTest <= 0;
     
-    oLED2 <= 0;
+    oLED2 <= 0;                    /// WTF!?!?!? WHY WON'T THIS WORK???!
   end
   else
   begin
