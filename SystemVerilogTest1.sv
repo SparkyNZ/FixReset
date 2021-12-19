@@ -18,7 +18,12 @@ module SystemVerilogTest1( input  logic sw1,
                            output logic oD3,
                            output logic oD4,
 
-                          
+
+                           output logic oD5,        // 7-segment array 2 select digit 1-4
+                           output logic oD6,
+                           output logic oD7,
+                           output logic oD8,
+
                            output logic[0:6] oDig,  // 7-segments
                            
                            output logic clkDup,
@@ -58,7 +63,6 @@ logic ir_out;
 logic clk2; 
  
 Clock2 clock2(
-	.areset ( ! notReset ),
 	.inclk0( clk ),
 	.c0( clk2 ) 
   );
@@ -82,7 +86,7 @@ logic notReset;
 
 //assign oLED8 = 1;
 //assign oLED7 = 1;
-assign oLED6 = 1;
+//assign oLED6 = 1;
 assign oLED5 = notReset;
 
 
@@ -178,17 +182,18 @@ typedef enum
 TCKSTATE tckState = tckIdle;  
 
 task DoCheckToTransmit;
-	if (sdr) begin				
-		shift_buffer <= {tdi, shift_buffer[31:1]}; //VJ State is Shift DR, so we shift using tdi and the existing bits.		
-	end	
-	if (cdr) begin //Capture DR is asserted. This means we lookup the current instruction and plop stuff here.
-		case (opco)
-			IDCODE: shift_buffer <= 32'h100011d3;
-			READREG: shift_buffer <= registers[active_register];
-			READREG2: shift_buffer <= srRegisters[active_register];
-			READTXT: shift_buffer <= text[text_offset];
-		endcase
-	end
+// PDS> I think this is happening far too often wrt clk - should be according to tck
+//	if (sdr) begin				
+//		shift_buffer <= {tdi, shift_buffer[31:1]}; //VJ State is Shift DR, so we shift using tdi and the existing bits.		
+//	end	
+//	if (cdr) begin //Capture DR is asserted. This means we lookup the current instruction and plop stuff here.
+//		case (opco)
+//			IDCODE: shift_buffer <= 32'h100011d3;
+//			READREG: shift_buffer <= registers[active_register];
+//			READREG2: shift_buffer <= srRegisters[active_register];
+//			READTXT: shift_buffer <= text[text_offset];
+//		endcase
+//	end
 	if (udr) begin
 		case (opco)						
 			SETREGISTER: active_register <= shift_buffer;	
@@ -197,6 +202,22 @@ task DoCheckToTransmit;
 		endcase		
 	end
 endtask
+
+// PDS> I think the shift_buffer should only be updated wrt tck signal -not clk
+always_ff @ (posedge tck) begin
+	if (sdr) begin				
+		shift_buffer <= {tdi, shift_buffer[31:1]}; //VJ State is Shift DR, so we shift using tdi and the existing bits.		
+	end	
+  
+	if (cdr) begin //Capture DR is asserted. This means we lookup the current instruction and plop stuff here.
+		case (opco)
+			IDCODE: shift_buffer <= 32'h100011d3;
+			READREG: shift_buffer <= registers[active_register];
+			READREG2: shift_buffer <= srRegisters[active_register];
+			READTXT: shift_buffer <= text[text_offset];
+		endcase
+	end
+end
 
 //--------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------
@@ -496,23 +517,34 @@ begin
   // BEGIN 7 seg
   toggle <= toggle + 1;
   
-  oD1 <= 1;
   
   if( toggle < 16384 ) 
   begin
+    oD1 <= 1;
     oD2 <= 1;  
     oD3 <= 1;
     oD4 <= 0;
+    
+    oD5 <= 1;
+    oD6 <= 1;
+    oD7 <= 1;
+    oD8 <= 1;
     
     // LED DIGIT #1 - Closest to DIGIT pair divider, closest to D connectors
     numLedValue <= LastSelectedTest[3:0];
   end
   else if( toggle < 32768 ) 
   begin
+    oD1 <= 1;
     oD2 <= 1;
     oD3 <= 0;
     oD4 <= 1;
     
+    oD5 <= 1;
+    oD6 <= 1;
+    oD7 <= 1;
+    oD8 <= 1;
+
     
     // LED DIGIT #2 - right of #1
     
@@ -521,19 +553,57 @@ begin
   end
   else if( toggle < 49152 )
   begin
+    oD1 <= 1;
     oD2 <= 0;  
     oD3 <= 1;
     oD4 <= 1;
-  
+
+    oD5 <= 1;
+    oD6 <= 1;
+    oD7 <= 1;
+    oD8 <= 1;
+    
     // LED DIGIT #3 - right of #2
     numLedValue <= jTagCommandRequested[3:0];
     //case( jTagCommandDone[3:0])
+  end
+  else if( toggle < 65536 )
+  begin
+    oD1 <= 0; 
+    oD2 <= 1;  
+    oD3 <= 1;
+    oD4 <= 1;
+
+    oD5 <= 1;
+    oD6 <= 1;
+    oD7 <= 1;
+    oD8 <= 1;
+    
+    // LED DIGIT #4 - right of #3
+    numLedValue <= SelectedTest[3:0];
+  end
+  else if( toggle < 85000 )
+  begin
+    oD1 <= 1; 
+    oD2 <= 1;  
+    oD3 <= 1;
+    oD4 <= 1;
+
+    oD5 <= 1;
+    oD6 <= 1;
+    oD7 <= 1;
+    oD8 <= 0;
+    
+    // LED DIGIT #4 - right of #3
+    numLedValue <= shift_buffer[3:0];
   end
   else
   begin
     toggle <= 0;
   end
 
+  
+  oLED6 <= notReset;
   
   // END 7 seg
   

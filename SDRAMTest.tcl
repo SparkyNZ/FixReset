@@ -79,7 +79,7 @@ proc userinput {} {
 	puts -nonewline "\n> "
 		set cmd [string toupper [gets stdin]]
 		set items [split $cmd " "]
-		switch [lindex $items 0] {			
+		switch [lindex $items 0] {
 			IDCODE {
 				idcode
 			}
@@ -214,6 +214,15 @@ proc userinput {} {
       AUTO {
         set SKIPRUN 0
       }
+      SELTEST {
+        seltest [lindex $items 1]
+      }
+      
+      SETREG {
+        # reg value
+        setRegister [lindex $items 1] [lindex $items 2]
+      }
+      
       W0 {
         # Write a value to address 0
         # val
@@ -224,6 +233,12 @@ proc userinput {} {
           readAndPrintText
         }
       }
+      
+      WRITEMEMNORUN {
+        # address val count
+        writeMemNoRun [lindex $items 1] [lindex $items 2] 1
+      }      
+      
       WRITEMEM {
         # address val count
         writeMem  [lindex $items 1] [lindex $items 2] 1
@@ -302,10 +317,6 @@ proc userinput {} {
 		reset
       }
       
-      TCL_TEST {
-        tcl_test
-      }
-      
 			HELP {
 				help
 			}
@@ -313,6 +324,10 @@ proc userinput {} {
 				puts "Ok. Daisy, Daisy....."
 				break
 			}
+      SELECTONLY {
+        selectonly [lindex $items 1]
+      }
+      
 			default {				
 				puts "Talk sense man - or I'll set Crem on you."
 			}
@@ -321,36 +336,40 @@ proc userinput {} {
     closeport
 }
 
+proc selectonly testno {
+  global SETTEST
+  
+	#Go to set instruction
+	device_virtual_ir_shift -instance_index 0 -ir_value $SETTEST
+	#push in test value
+	device_virtual_dr_shift -instance_index 0 -length 32 -dr_value [dec2bin $testno 32]  
+}
+
+
+proc seltest testno {
+  global SETTEST
+  global SELTEST
+  
+	#Go to set instruction
+	device_virtual_ir_shift -instance_index 0 -ir_value $SETTEST
+	#push in test value
+	device_virtual_dr_shift -instance_index 0 -length 32 -dr_value [dec2bin $testno 32]  
+	
+  device_virtual_ir_shift -instance_index 0 -ir_value $SELTEST
+}
+
+
 #--------------------- reset ---------------------
 proc reset {} {
 	# Toggle reset signal
 	global RESET_LO_CMD
 	global RESET_HI_CMD
 
-  # Added -show_equivalent_device_ir_dr_shift as per Intel recommendation 
-  # 12
-	device_virtual_ir_shift -instance_index 0 -show_equivalent_device_ir_dr_shift -ir_value $RESET_LO_CMD
+	device_virtual_ir_shift -instance_index 0 -ir_value $RESET_LO_CMD
 	setJTAGBypass        
-	after 3000
-  # 11
-	device_virtual_ir_shift -instance_index 0 -show_equivalent_device_ir_dr_shift -ir_value $RESET_HI_CMD
+	after 2000
+	device_virtual_ir_shift -instance_index 0 -ir_value $RESET_HI_CMD
 	setJTAGBypass        
-}
-
-proc tcl_test {} {
-  device_virtual_ir_shift -instance_index 0 -show_equivalent_device_ir_dr_shift -ir_value 1
-  after 500
-  device_virtual_ir_shift -instance_index 0 -show_equivalent_device_ir_dr_shift -ir_value 2
-  after 500
-  device_virtual_ir_shift -instance_index 0 -show_equivalent_device_ir_dr_shift -ir_value 3
-  after 500
-  device_virtual_ir_shift -instance_index 0 -show_equivalent_device_ir_dr_shift -ir_value 4
-  after 500
-  device_virtual_ir_shift -instance_index 0 -show_equivalent_device_ir_dr_shift -ir_value 5
-  after 500
-  device_virtual_ir_shift -instance_index 0 -show_equivalent_device_ir_dr_shift -ir_value 6
-  after 500
-  setJTAGBypass        
 }
 
 #--------------------- TEXT ---------------------
@@ -673,6 +692,17 @@ proc writeMem { address val count } {
   setRegister $REG_WRITE_COUNT $count
   
 	runTest 4 
+}
+
+#----------------------- WRITE ------------------------
+proc writeMemNoRun { address val count } {
+  global REG_ADDRESS    
+  global REG_WRITE_VAL  
+  global REG_WRITE_COUNT
+
+  setRegister $REG_ADDRESS     $address
+  #setRegister $REG_WRITE_VAL   $val
+  #setRegister $REG_WRITE_COUNT $count
 }
 
 #----------------------- READ ------------------------
